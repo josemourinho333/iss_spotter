@@ -1,10 +1,8 @@
 const request = require("request");
 
-const ip = 'https://api.ipify.org?format=json';
-
 const fetchMyIP = function(callback) { 
   // use request to fetch IP address from JSON API
-  request(ip, (error, response, data) => {
+  request('https://api.ipify.org?format=json', (error, response, data) => {
     // error checking if invalid domain, user is offline, etc
     if (error) {
       callback(error, null);
@@ -68,9 +66,32 @@ const fetchISSFlyOverTimes = (coords, callback) => {
     callback(null, flyoverTimes);
   });
 };
+
+const nextISSTimesForMyLocation = (callback) => {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null);
+    }
+
+    return fetchCoordsByIP(ip, (error, location) => {
+      if (error) {
+        return callback(error, null);
+      }
+
+      return fetchISSFlyOverTimes(location, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null);
+        }
+
+        callback(null, nextPasses);
+      })
+    })
+  })
+};
  
 module.exports = { 
   fetchMyIP,
   fetchCoordsByIP,
   fetchISSFlyOverTimes,
+  nextISSTimesForMyLocation,
 };
